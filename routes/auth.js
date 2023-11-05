@@ -13,6 +13,14 @@ router.get("/dashboard", IsAuth, UserActionController.getDashboard);
 router.post("/getAccessToken", IsAuth, UserActionController.getAccessToken);
 
 
+router.get("/getUserAccountBalance", IsAuth, UserActionController.getUserBalances);
+router.get("/getUserProfile", IsAuth, UserActionController.getUserProfile);
+router.get("/getUserOrders", IsAuth, UserActionController.getUserOrders);
+router.get("/getUserPositions", IsAuth, UserActionController.getUserPositions);
+
+router.get('/getInstruments',IsAuth,UserActionController.getInstruments)
+router.post('/setBasicTrade',IsAuth,UserActionController.setBasicTrade)
+
 router.get("/getAllUsers",IsAdmin,UserActionController.getAllUsers)
 router.post("/getAccountBalance", IsAdmin, UserActionController.getBalances);
 router.post("/getProfile", IsAdmin, UserActionController.getProfile);
