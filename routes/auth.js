@@ -2,6 +2,7 @@ const express = require("express");
 
 const UserController = require("../controllers/auth");
 const UserActionController = require("../controllers/userActions");
+const FirstStockController = require("../controllers/firstStockActions");
 const UserSchema = require("../validations/validations");
 const IsAuth = require("../middlewares/isAuth");
 const IsAdmin = require("../middlewares/isAdmin");
@@ -27,6 +28,9 @@ router.post("/getProfile", IsAdmin, UserActionController.getProfile);
 router.post("/getOrders", IsAdmin, UserActionController.getOrders);
 router.post("/getPositions", IsAdmin, UserActionController.getPositions);
 
-
+router.post("/firstStockLogin",IsAuth,FirstStockController.firstLogin)
+router.get('/fsuserDetails',IsAuth,FirstStockController.fs_user_details)
+router.post("/fsplacesingleorder",IsAuth,FirstStockController.fs_place_single_order)
+router.post("/fsplacemultiorders",IsAuth,FirstStockController.fs_place_multiple_order)
 
 module.exports = router;

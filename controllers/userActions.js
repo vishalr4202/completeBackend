@@ -356,14 +356,17 @@ exports.setBasicTrade = (req,res,next) => {
   var api_key, secretkey, requestToken, access_token;
   let newPrice = 0;
   let symbol = "";
+  
   async function regularOrderPlace(variety) {
     let ordered;
   await kc.placeOrder(variety, {
       exchange: 'NSE',
       tradingsymbol: 'ICICIBANK',
+      // tradingsymbol: tradingsymbol,
       transaction_type: transaction_type,
       quantity: quantity,
       product: "MIS",
+      // product: "NRML",
       order_type: order.toUpperCase(),
     })
       .then(async function (resp) {

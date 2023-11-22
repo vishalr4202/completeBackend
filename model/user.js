@@ -110,6 +110,23 @@ class User {
       });
   }
 
+  static findByIdAndUpdateFSToken(email, val) {
+    console.log(email, val, "inside Model");
+    const db = getDB();
+    return db
+      .collection("users")
+      .updateOne(
+        { email: email },
+        { $set: { FS_access_token: val, updated_at: Date.now() } }
+      )
+      .then((user) => {
+        // console.log("usermodel----", user);
+        return user;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
   static getUsers() {
     const db = getDB();
     console.log("in users")
