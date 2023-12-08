@@ -43,7 +43,16 @@ if (cluster.isMaster) {
   
   app.use((error, req, res, next) => {
     const status = error.statusCode || 500;
-    res.status(status).send(error);
+    
+    if(error?.message && !error?.data){
+      console.log(error,"inner err")
+      res.send(error)
+    }
+    else{
+      console.log(error,"outer err")
+      res.status(status).send(error);
+    }
+    
   });
   
   MongoConnect(() => {

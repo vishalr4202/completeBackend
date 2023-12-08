@@ -11,11 +11,19 @@ exports.getDashboard = (req, res, next) => {
       console.log(api_key)
     })
     .then(() => {
-      res.status(200).json({
-        message: "login Url Opened",
-        api_key: api_key,
-      });
-    });
+      if(api_key !== ''){
+        res.status(200).json({
+          message: "login Url Opened",
+          api_key: api_key,
+        });
+      }
+      else{
+        res.status(401).json({
+          data:"No Api Key",
+          status:401
+        })
+      }
+    })
 };
 
 exports.getAccessToken = (req, res, next) => {
@@ -69,7 +77,7 @@ exports.getUserBalances = (req,res,next) => {
   }).then(resp => {
     console.log(resp)
     res.status(200).json({
-      message: resp,
+      data: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -129,7 +137,7 @@ exports.getUserProfile = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      message: resp,
+      data: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -189,7 +197,7 @@ exports.getUserOrders = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      message: resp,
+      data: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -249,7 +257,7 @@ exports.getUserPositions = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      message: resp,
+      data: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -277,7 +285,7 @@ exports.getPositions = (req,res,next) => {
   .then(() => {
    return kc.getPositions()
   }).then(resp => {
-    console.log(resp,"resp")
+    // console.log(resp,"resp")
     res.status(200).json({
       message: resp,
     });
@@ -360,13 +368,13 @@ exports.setBasicTrade = (req,res,next) => {
   async function regularOrderPlace(variety) {
     let ordered;
   await kc.placeOrder(variety, {
-      exchange: 'NSE',
-      tradingsymbol: 'ICICIBANK',
-      // tradingsymbol: tradingsymbol,
+      exchange: 'NFO',
+      // tradingsymbol: 'ICICIBANK',
+      tradingsymbol: tradingsymbol,
       transaction_type: transaction_type,
       quantity: quantity,
-      product: "MIS",
-      // product: "NRML",
+      // product: "MIS",
+      product: "NRML",
       order_type: order.toUpperCase(),
     })
       .then(async function (resp) {
@@ -410,15 +418,15 @@ exports.setBasicTrade = (req,res,next) => {
         })
         .catch((err) => {
           console.log(err, "error");
-          //  next();
+           next(err);
         });
       }
-      else{
-        const error = new Error();
-        error.statusCode = 501;
-        error.data = "Order Rejected";
-        throw error;
-      }
+      // else{
+      //   const error = new Error();
+      //   error.statusCode = 501;
+      //   error.data = "Order Rejected";
+      //   throw error;
+      // }
     }).then(result => {
       if(result !== undefined && result?.status == 'COMPLETED'){
         console.log(result,"orders")
