@@ -19,7 +19,7 @@ exports.getDashboard = (req, res, next) => {
       }
       else{
         res.status(401).json({
-          data:"No Api Key",
+          message:"No Api Key",
           status:401
         })
       }

@@ -46,7 +46,7 @@ if (cluster.isMaster) {
     
     if(error?.message && !error?.data){
       console.log(error,"inner err")
-      res.send(error)
+      res.status(status).send(error)
     }
     else{
       console.log(error,"outer err")
