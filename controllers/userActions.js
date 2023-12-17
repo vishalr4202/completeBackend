@@ -77,7 +77,7 @@ exports.getUserBalances = (req,res,next) => {
   }).then(resp => {
     console.log(resp)
     res.status(200).json({
-      data: resp,
+      message: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -137,7 +137,7 @@ exports.getUserProfile = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      data: resp,
+      message: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -197,7 +197,7 @@ exports.getUserOrders = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      data: resp,
+      message: resp,
     });
   }).catch(err => {
     console.log(err), "error";
@@ -257,7 +257,7 @@ exports.getUserPositions = (req,res,next) => {
   }).then(resp => {
     console.log(resp,"resp")
     res.status(200).json({
-      data: resp,
+      message: resp,
     });
   }).catch(err => {
     console.log(err), "error";
