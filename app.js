@@ -5,7 +5,7 @@ const port = 8001;
 const cluster = require('node:cluster');
 const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
-// var cors= require('cors')
+var cors= require('cors')
 if (cluster.isMaster) {
   console.log(`Number of CPUs is ${totalCPUs}`);
   console.log(`Master ${process.pid} is running`);
@@ -28,7 +28,7 @@ if (cluster.isMaster) {
   const express = require("express");
   const app = express()
   app.use(express.json());
-  // app.use(cors())
+  app.use(cors())
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader(
