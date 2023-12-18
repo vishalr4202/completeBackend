@@ -7,7 +7,7 @@ const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
 
 var corsOptions = {
-  origin: 'https://zerodhalogin.netlify.app',
+  origin: 'http://newbotfather.s3-website.ap-south-1.amazonaws.com',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
