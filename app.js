@@ -7,31 +7,31 @@ const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
 
 var corsOptions = {
-  origin: 'http://newbotfather.s3-website.ap-south-1.amazonaws.com',
+  origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://netlifylogin.zerodha.app","http://botfather.co.in","http://localhost:5173"],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
 var cors= require('cors')
-// if (cluster.isMaster) {
-//   console.log(`Number of CPUs is ${totalCPUs}`);
-//   console.log(`Master ${process.pid} is running`);
+if (cluster.isMaster) {
+  console.log(`Number of CPUs is ${totalCPUs}`);
+  console.log(`Master ${process.pid} is running`);
 
-//   // Fork workers.
-//   for (let i = 0; i < 2; i++) {
-//     cluster.fork();
-//   }
+  // Fork workers.
+  for (let i = 0; i < 2; i++) {
+    cluster.fork();
+  }
 
-//   cluster.on('online',function(worker){
-//     console.log('Worker is running on %s pid', worker.process.pid);
-//   })
-//   cluster.on('exit', (worker, code, signal) => {
-//     console.log(`worker ${worker.process.pid} died`);
-//     console.log("Let's fork another worker!");
-//     cluster.fork();
-//   });
+  cluster.on('online',function(worker){
+    console.log('Worker is running on %s pid', worker.process.pid);
+  })
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+    console.log("Let's fork another worker!");
+    cluster.fork();
+  });
 
-// }
-//  else {
+}
+ else {
   const express = require("express");
   const app = express()
   app.use(express.json());
@@ -66,7 +66,7 @@ var cors= require('cors')
   MongoConnect(() => {
     app.listen(port, () => console.log(`Example app listening on port ${port}!, version 2`));
   });
-// }
+}
 
 
 
