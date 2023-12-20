@@ -1,10 +1,13 @@
 
 const AuthRoutes = require("./routes/auth");
 const MongoConnect = require("./utils/db").MongoConnect;
-const port = 8001;
+const port = 443;
 const cluster = require('node:cluster');
 const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
+var http = require('http');
+var https = require('https');
+var credentials = {key:'' , cert: ''};
 
 var corsOptions = {
   origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://netlifylogin.zerodha.app","http://botfather.co.in","http://localhost:5173"],
@@ -36,6 +39,8 @@ if (cluster.isMaster) {
   const app = express()
   app.use(express.json());
   app.use(cors(corsOptions))
+  // var httpServer = http.createServer(app);
+  var httpsServer = https.createServer(credentials, app);
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader(
@@ -64,7 +69,9 @@ if (cluster.isMaster) {
   });
   
   MongoConnect(() => {
-    app.listen(port, () => console.log(`Example app listening on port ${port}!, version 2`));
+    // app.listen(port, () => console.log(`Example app listening on port ${port}!, version 2`));
+    // httpServer.listen(port,() => console.log(`Example app listening on port ${port}!, version 2`));
+    httpsServer.listen(port,() => console.log(`Example app listening on port ${port}!, version 2`));
   });
 }
 
