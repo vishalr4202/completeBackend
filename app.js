@@ -7,10 +7,15 @@ const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
 var http = require('http');
 var https = require('https');
-var credentials = {key:'' , cert: ''};
+
+var key = fs.readFileSync(__dirname + '/../../cert/botfather.key');
+var cert = fs.readFileSync(__dirname + '/../../cert/botfather.crt');
+
+var credentials = {key:key , cert: cert};
+
 
 var corsOptions = {
-  origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://netlifylogin.zerodha.app","http://botfather.co.in","http://localhost:5173"],
+  origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://zerodhalogin.netlify.app","http://botfather.co.in","https://botfather.co.in","http://localhost:5173","https://d292u4d54fm2cc.cloudfront.net"],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
