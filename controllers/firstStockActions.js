@@ -470,22 +470,36 @@ exports.fs_getBasketMargins = (req, res, next) => {
 
 exports.fs_shortStraddle = (req, res, next) => {
   const email = req.email;
+  const {symbol,strikePrice,expiry,quantity,hedge,hedgeValue} = req.body
+  // console.log(symbol,strikePrice,expiry,quantity,hedge,hedgeValue)
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
         UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
+      // console.log(exp.toUpperCase(),"sdf")
       firstock.shortStraddle({ userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   strikePrice: "21000",
+        //   expiry: "28DEC23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "ShortStraddleWithoutHedge",
+        //   hedge: "false",
+        //   hedgeValue: "0",
+        // },
         {
-          symbol: "NIFTY",
-          strikePrice: "17000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          strikePrice: strikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "ShortStraddleWithoutHedge",
-          hedge: "true",
-          hedgeValue: "100",
+          hedge: hedge ? "true" : "false",
+          hedgeValue: hedge == false ? "0" : hedgeValue,
         },
         (err, result) => {
         console.log("Error, ", err);
@@ -509,23 +523,36 @@ exports.fs_shortStraddle = (req, res, next) => {
 
 exports.fs_shortStrangle = (req, res, next) => {
   const email = req.email;
+  const {symbol,callStrikePrice,putStrikePrice,expiry,quantity,hedge,hedgeValue} = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
         UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
       firstock.shortStrangle({ userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   callStrikePrice: "21500",
+        //   putStrikePrice: "20000",
+        //   expiry: "28DEC23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "ShortStrangleWithOutHedge",
+        //   hedge: "true",
+        //   hedgeValue: "100",
+        // },
         {
-          symbol: "NIFTY",
-          callStrikePrice: "17500",
-          putStrikePrice: "17000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          callStrikePrice: callStrikePrice,
+          putStrikePrice: putStrikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "ShortStrangleWithOutHedge",
-          hedge: "true",
-          hedgeValue: "100",
+          hedge:  hedge ? "true" : "false",
+          hedgeValue: hedge == false ? "0" : hedgeValue,
         },
         (err, result) => {
         console.log("Error, ", err);
@@ -549,20 +576,30 @@ exports.fs_shortStrangle = (req, res, next) => {
 
 exports.fs_longStraddle = (req, res, next) => {
   const email = req.email;
+  const {symbol,strikePrice,expiry,quantity} = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
         UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
       firstock.longStraddle(
         { userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   strikePrice: "17000",
+        //   expiry: "30NOV23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "longStraddle",
+        // },
         {
-          symbol: "NIFTY",
-          strikePrice: "17000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          strikePrice: strikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "longStraddle",
         },
         (err, result) => {
@@ -587,21 +624,33 @@ exports.fs_longStraddle = (req, res, next) => {
 
 exports.fs_longStrangle = (req, res, next) => {
   const email = req.email;
+  const {symbol,callStrikePrice,putStrikePrice,expiry,quantity} = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
         UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
       firstock.longStrangle(
         { userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   callStrikePrice: "18000",
+        //   putStrikePrice: "17000",
+        //   expiry: "30NOV23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "longStrangle",
+          
+        // },
         {
-          symbol: "NIFTY",
-          callStrikePrice: "18000",
-          putStrikePrice: "17000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          callStrikePrice: callStrikePrice,
+          putStrikePrice: putStrikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "longStrangle",
           
         },
@@ -627,21 +676,33 @@ exports.fs_longStrangle = (req, res, next) => {
 
 exports.fs_bullCallSpread = (req, res, next) => {
   const email = req.email;
+  const {symbol,callBuyStrikePrice,callSellStrikePrice,expiry,quantity} = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
       UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
       firstock.bullCallSpread(
         { userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   callBuyStrikePrice: "18000",
+        //   callSellStrikePrice: "17000",
+        //   expiry: "30NOV23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "BullCallSpread",
+          
+        // },
         {
-          symbol: "NIFTY",
-          callBuyStrikePrice: "18000",
-          callSellStrikePrice: "17000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          callBuyStrikePrice: callBuyStrikePrice,
+          callSellStrikePrice: callSellStrikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "BullCallSpread",
           
         },
@@ -667,23 +728,33 @@ exports.fs_bullCallSpread = (req, res, next) => {
 
 exports.fs_bearPutSpread = (req, res, next) => {
   const email = req.email;
+  const {symbol,putBuyStrikePrice,putSellStrikePrice,expiry,quantity} = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
       UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
+      const exp = expiry.replace(/-/g, "")
       firstock.bearPutSpread(
         { userId: UID, jKey: access_token },
+        // {
+        //   symbol: "NIFTY",
+        //   putBuyStrikePrice: "18000",
+        //   putSellStrikePrice: "18000",
+        //   expiry: "30NOV23",
+        //   product: "M",
+        //   quantity: "50",
+        //   remarks: "bearPutSpread",
+        // },
         {
-          symbol: "NIFTY",
-          putBuyStrikePrice: "18000",
-          putSellStrikePrice: "18000",
-          expiry: "30NOV23",
+          symbol: symbol,
+          putBuyStrikePrice: putBuyStrikePrice,
+          putSellStrikePrice: putSellStrikePrice,
+          expiry: exp.toUpperCase(),
           product: "M",
-          quantity: "50",
+          quantity: quantity,
           remarks: "bearPutSpread",
-          
         },
         (err, result) => {
         console.log("Error, ", err);
