@@ -81,13 +81,19 @@ exports.showLogin = (req, res, next) => {
         "Fulham@chelsea&Liverpool",
         { expiresIn: "24h" }
       );
+      console.log(loggedUser,"logged")
+      const access = {
+        'Zerodha': loggedUser?.api_key && loggedUser?.api_key!= '' ? true : false,
+        'Firstock': loggedUser?.FS_uid && loggedUser?.FS_uid !== '' ? true :false
+      }        
       res.status(200).json({
         message: "User loggedin",
         token: token,
         userId: loggedUser._id.toString(),
         username: loggedUser.name,
         loginId: loggedUser.userId,
-        role:loggedUser?.Role
+        role:loggedUser?.Role,
+        access:access
       });
     })
     .catch((error) => {

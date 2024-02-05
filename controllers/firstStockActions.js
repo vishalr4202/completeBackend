@@ -2,6 +2,7 @@ const User = require("../model/user");
 const Firstock = require("thefirstock");
 
 const firstock = new Firstock();
+// const ws = firstock.initializeWebSocket(2);
 
 exports.firstLogin = (req, res, next) => {
   const { password, otp } = req.body
@@ -79,19 +80,19 @@ exports.fs_user_details = (req, res, next) => {
           }
         });
     })
-    // .catch(err => {
-    // console.log('ASJNjkans',err)
-    //   if (!err.statusCode) {
-    //     err.statusCode = 500;
-    //   }
-    //   next(err);
-    // })
+  // .catch(err => {
+  // console.log('ASJNjkans',err)
+  //   if (!err.statusCode) {
+  //     err.statusCode = 500;
+  //   }
+  //   next(err);
+  // })
 }
 
 exports.fs_place_single_order = (req, res, next) => {
-  console.log(req.body,"Sssasd")
+  console.log(req.body, "Sssasd")
   const email = req.email;
-  const{tradingsymbol,transaction_type,entry_type,order,limit,quantity} = req.body
+  const { tradingsymbol, transaction_type, entry_type, order, limit, quantity } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
@@ -99,10 +100,10 @@ exports.fs_place_single_order = (req, res, next) => {
       console.log(result, "result")
     }).then(() => {
       let quantMultiple = 50;
-      if(tradingsymbol.includes('BANKNIFTY')){
+      if (tradingsymbol.includes('BANKNIFTY')) {
         quantMultiple = 15
       }
-      if(tradingsymbol.includes('FINNIFTY')){
+      if (tradingsymbol.includes('FINNIFTY')) {
         quantMultiple = 40
       }
       firstock.placeOrder(
@@ -113,7 +114,7 @@ exports.fs_place_single_order = (req, res, next) => {
         {
           exchange: "NFO",
           tradingSymbol: tradingsymbol,
-          quantity: quantity*quantMultiple ,
+          quantity: quantity * quantMultiple,
           price: limit ? limit : '0',
           product: "M",
           transactionType: transaction_type,
@@ -136,14 +137,16 @@ exports.fs_place_single_order = (req, res, next) => {
                     message: { status: result1?.data[0]?.status, order_id: result1?.data[0]?.orderNumber },
                   });
                 }
-                if(result1?.data[0]?.status == 'REJECTED'){
+                if (result1?.data[0]?.status == 'REJECTED') {
                   // res.status(200).json({
                   //   error: { status: result1?.data[0]?.status, reason: result1?.data[0]?.rejectReason },
                   // });
-                
-                  next({"fs_error":{
-                     statusCode : 500, status: result1?.data[0]?.status, reason: result1?.data[0]?.rejectReason
-                  }})
+
+                  next({
+                    "fs_error": {
+                      statusCode: 500, status: result1?.data[0]?.status, reason: result1?.data[0]?.rejectReason
+                    }
+                  })
                 }
                 else {
                   console.log(err1, "sdas")
@@ -433,7 +436,7 @@ exports.fs_getBasketMargins = (req, res, next) => {
               tradingSymbol: "NIFTY30NOV23C20100",
               quantity: "50",
               transactionType: "B",
-              price:"5.5",
+              price: "5.5",
               product: "M",
               priceType: "MKT",
             },
@@ -442,7 +445,7 @@ exports.fs_getBasketMargins = (req, res, next) => {
               tradingSymbol: "NIFTY30NOV23C19800",
               quantity: "50",
               transactionType: "S",
-              price:"90",
+              price: "90",
               product: "M",
               priceType: "MKT",
             },
@@ -470,7 +473,7 @@ exports.fs_getBasketMargins = (req, res, next) => {
 
 exports.fs_shortStraddle = (req, res, next) => {
   const email = req.email;
-  const {symbol,strikePrice,expiry,quantity,hedge,hedgeValue} = req.body
+  const { symbol, strikePrice, expiry, quantity, hedge, hedgeValue } = req.body
   // console.log(symbol,strikePrice,expiry,quantity,hedge,hedgeValue)
   User.findByEmailId(email)
     .then((result) => {
@@ -502,16 +505,16 @@ exports.fs_shortStraddle = (req, res, next) => {
           hedgeValue: hedge == false ? "0" : hedgeValue,
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -523,7 +526,7 @@ exports.fs_shortStraddle = (req, res, next) => {
 
 exports.fs_shortStrangle = (req, res, next) => {
   const email = req.email;
-  const {symbol,callStrikePrice,putStrikePrice,expiry,quantity,hedge,hedgeValue} = req.body
+  const { symbol, callStrikePrice, putStrikePrice, expiry, quantity, hedge, hedgeValue } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
@@ -551,20 +554,20 @@ exports.fs_shortStrangle = (req, res, next) => {
           product: "M",
           quantity: quantity,
           remarks: "ShortStrangleWithOutHedge",
-          hedge:  hedge ? "true" : "false",
+          hedge: hedge ? "true" : "false",
           hedgeValue: hedge == false ? "0" : hedgeValue,
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -576,7 +579,7 @@ exports.fs_shortStrangle = (req, res, next) => {
 
 exports.fs_longStraddle = (req, res, next) => {
   const email = req.email;
-  const {symbol,strikePrice,expiry,quantity} = req.body
+  const { symbol, strikePrice, expiry, quantity } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
@@ -603,16 +606,16 @@ exports.fs_longStraddle = (req, res, next) => {
           remarks: "longStraddle",
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -624,7 +627,7 @@ exports.fs_longStraddle = (req, res, next) => {
 
 exports.fs_longStrangle = (req, res, next) => {
   const email = req.email;
-  const {symbol,callStrikePrice,putStrikePrice,expiry,quantity} = req.body
+  const { symbol, callStrikePrice, putStrikePrice, expiry, quantity } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
@@ -642,7 +645,7 @@ exports.fs_longStrangle = (req, res, next) => {
         //   product: "M",
         //   quantity: "50",
         //   remarks: "longStrangle",
-          
+
         // },
         {
           symbol: symbol,
@@ -652,19 +655,19 @@ exports.fs_longStrangle = (req, res, next) => {
           product: "M",
           quantity: quantity,
           remarks: "longStrangle",
-          
+
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -676,11 +679,11 @@ exports.fs_longStrangle = (req, res, next) => {
 
 exports.fs_bullCallSpread = (req, res, next) => {
   const email = req.email;
-  const {symbol,callBuyStrikePrice,callSellStrikePrice,expiry,quantity} = req.body
+  const { symbol, callBuyStrikePrice, callSellStrikePrice, expiry, quantity } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
-      UID = result.FS_uid
+        UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
       const exp = expiry.replace(/-/g, "")
@@ -694,7 +697,7 @@ exports.fs_bullCallSpread = (req, res, next) => {
         //   product: "M",
         //   quantity: "50",
         //   remarks: "BullCallSpread",
-          
+
         // },
         {
           symbol: symbol,
@@ -704,19 +707,19 @@ exports.fs_bullCallSpread = (req, res, next) => {
           product: "M",
           quantity: quantity,
           remarks: "BullCallSpread",
-          
+
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -728,11 +731,11 @@ exports.fs_bullCallSpread = (req, res, next) => {
 
 exports.fs_bearPutSpread = (req, res, next) => {
   const email = req.email;
-  const {symbol,putBuyStrikePrice,putSellStrikePrice,expiry,quantity} = req.body
+  const { symbol, putBuyStrikePrice, putSellStrikePrice, expiry, quantity } = req.body
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
-      UID = result.FS_uid
+        UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
       const exp = expiry.replace(/-/g, "")
@@ -757,16 +760,16 @@ exports.fs_bearPutSpread = (req, res, next) => {
           remarks: "bearPutSpread",
         },
         (err, result) => {
-        console.log("Error, ", err);
-        console.log("Result: ", result);
-        if (result && result != null) {
-          res.status(200).json({
-            message: result,
-          });
-        } else {
-          next(err)
-        }
-      });
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            res.status(200).json({
+              message: result,
+            });
+          } else {
+            next(err)
+          }
+        });
     }).catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
@@ -784,7 +787,7 @@ exports.fs_getInstruments = (req, res, next) => {
         UID = result.FS_uid
       console.log(result, "result")
     }).then(() => {
-      firstock.getIndexList({ userId: UID, jKey: access_token },{exchange:"NFO"}, (err, result) => {
+      firstock.getIndexList({ userId: UID, jKey: access_token }, { exchange: "NFO" }, (err, result) => {
         console.log("Error, ", err);
         console.log("Result: ", result);
         if (result && result != null) {
@@ -804,3 +807,136 @@ exports.fs_getInstruments = (req, res, next) => {
     })
 }
 
+exports.FS_getLTP = (req, res, next) => {
+  const email = req.email;
+  let token = "";
+  User.findByEmailId(email)
+    .then((result) => {
+      access_token = result.FS_access_token,
+        UID = result.FS_uid
+      ID = result.FS_id
+      // console.log(result, "result")
+    }).then(() => {
+
+      firstock.searchScripts({ stext: "NIFTY08FEB24C22400", userId: UID, jKey: access_token, }, (err, result) => {
+        console.log("Error, ", err);
+        // console.log("Result: ", result);
+        if (result) {
+          token = result?.values[0]?.token
+          console.log(token)
+          // firstock.getQuoteltp(
+          //   {
+          //     userId: UID,
+          //     jKey: access_token,
+          //     exchange: "NFO",
+          //     token: token,
+          //   },
+          //   (err, result) => {
+          //     console.log("getQuoteltp Error, ", err);
+          //     console.log("getQuoteltp Result: ", result?.data?.lastTradedPrice);
+          //   }
+          // );
+
+          const ws = firstock.initializeWebSocket(2); 
+          ws.on("open", function open() {
+            firstock.getWebSocketDetails({UID:UID,jKey:access_token},(err, result) => {
+              if (!err) {
+                firstock.initialSendWebSocketDetails(ws, result, () => {
+                  //Subscribe Feed
+                  ws.send(firstock.subscribeFeedAcknowledgement(`NFO|${token}`)); //Sending NIFTY 50 and BANKNIFTY Token
+                });
+              }
+            });
+          });
+          
+          ws.on("error", function error(error) {
+            console.log(`WebSocket error: ${error}`);
+          });
+          
+          ws.on("message", function message(data) {
+            const result = firstock.receiveWebSocketDetails(data);
+            console.log("message: ", result?.lp);
+
+          });
+          // ws.on("open", function open() {
+          //   firstock.getWebSocketDetails({UID:UID,jKey:access_token},(err, result) => {
+          //     if (!err) {
+          //       firstock.initialSendWebSocketDetails(ws, result, () => {
+          //         ws.send(firstock.subscribeOrderUpdate(`${UID}`));
+          //       });
+          //     }
+          //   });
+          // });
+          
+          // ws.on("error", function error(error) {
+          //   console.log(`WebSocket error: ${error}`);
+          // });
+          
+          // ws.on("message", function message(data) {
+          //   const result = firstock.receiveWebSocketDetails(data);
+          //   console.log("message: ", result);
+          // });
+        }
+      });
+    })
+}
+
+exports.FS_getUserTokenData = (req, res, next) => {
+  const email = req.email;
+  User.findByEmailId(email)
+    .then((result) => {
+        access_token = result.FS_access_token,
+        UID = result.FS_uid,
+        id = result.FS_id
+      console.log(result, "result")
+    }).then(() => {
+      console.log(access_token,UID,id,"userDATA")
+      res.status(200).json({
+        message: {
+          uid:UID,
+          actid:id,
+          susertoken:access_token
+        },
+      });
+    }).catch(err => {
+      console.log(err), "error";
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+}
+
+exports.OrderUpdate = (req,res,next) =>{
+  const email = req.email;
+  let token = "";
+  User.findByEmailId(email)
+    .then((result) => {
+      access_token = result.FS_access_token,
+        UID = result.FS_uid
+      ID = result.FS_id
+      // console.log(result, "result")
+    }).then((res) =>{
+
+const ws = firstock.initializeWebSocket(2);
+ws.on("open", function open() {
+  firstock.getWebSocketDetails({UID:UID,jKey:access_token},(err, result) => {
+    if (!err) {
+      firstock.initialSendWebSocketDetails(ws, result, () => {
+        // ws.send(firstock.subscribeOrderUpdate(ID));
+        ws.send(firstock.subscribeOrderUpdate(UID))
+      }); 
+    }
+  });
+});
+
+ws.on("error", function error(error) {
+  console.log(`WebSocket error: ${error}`);
+});
+
+ws.on("message", function message(data) {
+  const result = firstock.receiveWebSocketDetails(data);
+  console.log("message: ", result);
+});
+    })
+}

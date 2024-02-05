@@ -43,5 +43,8 @@ router.post("/fslongstrangle",IsAuth,FirstStockController.fs_longStrangle)
 router.post('/fsBullCallSpread',IsAuth,FirstStockController.fs_bullCallSpread)
 router.post('/fsBearPutSpread',IsAuth,FirstStockController.fs_bearPutSpread)
 router.post("/fsgetInstruments",IsAuth,FirstStockController.fs_getInstruments)
+router.get("/fsGetLTP",IsAuth,FirstStockController.FS_getLTP)
+router.get("/fsGetUserKeys",IsAuth,FirstStockController.FS_getUserTokenData)
+router.get("/getOrderUpdate",IsAuth,FirstStockController.OrderUpdate)
 
 module.exports = router;
