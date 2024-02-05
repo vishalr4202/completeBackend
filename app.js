@@ -1,19 +1,19 @@
 
 const AuthRoutes = require("./routes/auth");
 const MongoConnect = require("./utils/db").MongoConnect;
-// const port = 443;
-const port =8001;
+const port = 443;
+// const port =8001;
 const cluster = require('node:cluster');
 const totalCPUs = require('node:os').cpus().length;
 const process = require('node:process');
 const fs = require('fs');
-var http = require('http');
+// var http = require('http');
 var https = require('https');
 
-// var key = fs.readFileSync(__dirname + '/../../cert/botfather.key');
-// var cert = fs.readFileSync(__dirname + '/../../cert/botfather.crt');
+var key = fs.readFileSync(__dirname + '/../../cert/botfather.key');
+var cert = fs.readFileSync(__dirname + '/../../cert/botfather.crt');
 
-// var credentials = {key:key , cert: cert};
+var credentials = {key:key , cert: cert};
 
 
 var corsOptions = {
@@ -46,8 +46,8 @@ if (cluster.isMaster) {
   const app = express()
   app.use(express.json());
   app.use(cors(corsOptions))
-  var httpServer = http.createServer(app);
-  // var httpsServer = https.createServer(credentials, app);
+  // var httpServer = http.createServer(app);
+  var httpsServer = https.createServer(credentials, app);
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader(
@@ -76,9 +76,9 @@ if (cluster.isMaster) {
   });
   
   MongoConnect(() => {
-    app.listen(port, () => console.log(`Example app listening on port ${port}!, version 2`));
+    // app.listen(port, () => console.log(`Example app listening on port ${port}!, version 2`));
     // httpServer.listen(port,() => console.log(`Example app listening on port ${port}!, version 2`));
-    // httpsServer.listen(port,() => console.log(`Example app listening on port ${port}!, version 2`));
+    httpsServer.listen(port,() => console.log(`Example app listening on port ${port}!, version 2`));
   });
 }
 
