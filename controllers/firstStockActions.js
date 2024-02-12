@@ -940,3 +940,85 @@ ws.on("message", function message(data) {
 });
     })
 }
+
+exports.fs_place_single_order = (req, res, next) => {
+  console.log(req.body, "Sssasd")
+  const email = req.email;
+  const { tradingsymbol, transaction_type, entry_type, order, limit, quantity,quickTrade,priceType } = req.body
+  console.log(order,quickTrade,"sdhfbjs")
+  User.findByEmailId(email)
+    .then((result) => {
+      access_token = result.FS_access_token,
+        UID = result.FS_uid
+      console.log(result, "result")
+    }).then(() => {
+      let quantMultiple = 50;
+      if (tradingsymbol.includes('BANKNIFTY')) {
+        quantMultiple = 15
+      }
+      if (tradingsymbol.includes('FINNIFTY')) {
+        quantMultiple = 40
+      }
+      firstock.placeOrder(
+        {
+          userId: UID,
+          jKey: access_token
+        },
+        {
+          exchange: "NFO",
+          tradingSymbol: tradingsymbol,
+          quantity: quickTrade ? quantity :quantity * quantMultiple,
+          price: limit ? limit : '0',
+          product: "M",
+          transactionType: transaction_type,
+          // priceType: order == "Market" ? "MKT" : "LMT",
+          priceType: priceType,
+          retention: "IOC",
+          triggerPrice: "0",
+          remarks: "place order",
+        },
+        (err, result) => {
+          console.log("Error, ", err);
+          console.log("Result: ", result);
+          if (result && result != null) {
+            firstock.singleOrderHistory(
+              { userId: UID, jKey: access_token, orderNumber: result?.data?.orderNumber },
+              (err1, result1) => {
+                console.log("Error, ", err1);
+                console.log("Result: ", result1);
+                if (result1 && result1 !== null && result1?.data[0]?.status != 'REJECTED') {
+                  res.status(200).json({
+                    message: { status: result1?.data[0]?.status, order_id: result1?.data[0]?.orderNumber },
+                  });
+                }
+                if (result1?.data[0]?.status == 'REJECTED') {
+                  // res.status(200).json({
+                  //   error: { status: result1?.data[0]?.status, reason: result1?.data[0]?.rejectReason },
+                  // });
+
+                  next({
+                    "fs_error": {
+                      statusCode: 500, status: result1?.data[0]?.status, reason: result1?.data[0]?.rejectReason
+                    }
+                  })
+                }
+                else {
+                  console.log(err1, "sdas")
+                  next(err1)
+                }
+              }
+            );
+          }
+          else {
+            next(err)
+          }
+        }
+      );
+    }).catch(err => {
+      console.log(err), "error";
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+}

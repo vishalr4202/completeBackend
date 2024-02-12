@@ -18,13 +18,31 @@ exports.createSignup = (req, res, next) => {
   } else {
     console.log("dskjsl");
   }
-  const { name, email, password } = req.body;
+  const { name, email, password, access_token,
+    api_key,
+    secret_key,
+    updated_at,
+    zerodha,
+    firstock,
+    FS_id,
+    FS_uid,
+    FS_api_key,
+    FS_access_token } = req.body;
 
   bcrypt
     .hash(password, 12)
     .then((hashedPW) => {
       //   console.log(hashedPW);
-      const user = new User(name, email, hashedPW);
+      const user = new User(name, email, hashedPW, access_token,
+        api_key,
+        secret_key,
+        updated_at,
+        zerodha,
+        firstock,
+        FS_id,
+        FS_uid,
+        FS_api_key,
+        FS_access_token);
       return user.save();
     })
     .then((user) => {

@@ -3,6 +3,7 @@ const express = require("express");
 const UserController = require("../controllers/auth");
 const UserActionController = require("../controllers/userActions");
 const FirstStockController = require("../controllers/firstStockActions");
+const FirstockSet = require('../controllers/firstockSet');
 const UserSchema = require("../validations/validations");
 const IsAuth = require("../middlewares/isAuth");
 const IsAdmin = require("../middlewares/isAdmin");
@@ -23,10 +24,31 @@ router.post('/setBasicTrade',IsAuth,UserActionController.setBasicTrade)
 
 // Admin Zerodha
 router.get("/getAllUsers",IsAdmin,UserActionController.getAllUsers)
+router.get("/getAllZerodhaUsers",IsAdmin,UserActionController.getAllZerodhaUsers)
 router.post("/getAccountBalance", IsAdmin, UserActionController.getBalances);
 router.post("/getProfile", IsAdmin, UserActionController.getProfile);
 router.post("/getOrders", IsAdmin, UserActionController.getOrders);
 router.post("/getPositions", IsAdmin, UserActionController.getPositions);
+
+
+
+//Admin Firstock sets
+// UserSchema.setSignupSchema
+router.post('/createSet',IsAdmin, UserSchema.setSignupSchema,FirstockSet.createSet)
+router.post('/deleteSet',IsAdmin,FirstockSet.deleteSet)
+router.post('/placeSetOrders',IsAdmin,FirstockSet.placeSetOrders)
+router.post('/exitSetOrders',IsAdmin,FirstockSet.exitSetOrders)
+router.get('/getFSUsers',IsAdmin,FirstockSet.getFSUsers)
+router.get('/getAllSets',IsAdmin,FirstockSet.getAllSets)
+router.post('/primaryUserDetail',IsAdmin,FirstockSet.getPrimaryUserDetails)
+router.post("/primarySetPositions",IsAdmin,FirstockSet.getPrimarySetPositions)
+router.post('/setplacemultipleorders',IsAdmin,FirstockSet.fs_Set_place_multiple_order)
+router.post('/setshortStraddle',IsAdmin,FirstockSet.set_fs_shortStraddle)
+router.post('/setshortStrangle',IsAdmin,FirstockSet.set_fs_shortStrangle)
+router.post('/setlongStraddle',IsAdmin,FirstockSet.set_fs_longStraddle)
+router.post('/setlongStrangle',IsAdmin,FirstockSet.set_fs_longStrangle)
+router.post('/setbullCallSpread',IsAdmin,FirstockSet.set_fs_bullCallSpread)
+router.post('/setbearPutSpread',IsAdmin,FirstockSet.set_fs_bearPutSpread)
 
 // userFirstock
 router.post("/firstStockLogin",IsAuth,FirstStockController.firstLogin)
