@@ -49,6 +49,7 @@ router.post('/setlongStraddle',IsAdmin,FirstockSet.set_fs_longStraddle)
 router.post('/setlongStrangle',IsAdmin,FirstockSet.set_fs_longStrangle)
 router.post('/setbullCallSpread',IsAdmin,FirstockSet.set_fs_bullCallSpread)
 router.post('/setbearPutSpread',IsAdmin,FirstockSet.set_fs_bearPutSpread)
+router.post('/setloginAll',IsAdmin,FirstockSet.set_loginAll)
 
 // userFirstock
 router.post("/firstStockLogin",IsAuth,FirstStockController.firstLogin)

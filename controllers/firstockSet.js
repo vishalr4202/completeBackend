@@ -2,7 +2,7 @@ const User = require("../model/user");
 const Set = require('../model/sets')
 const Firstock = require("thefirstock");
 const { validationResult } = require("express-validator");
-
+const totpGen = require("totp-generator").TOTP
 const firstock = new Firstock();
 
 exports.createSet = (req, res, next) => {
@@ -804,6 +804,75 @@ exports.set_fs_bearPutSpread = (req, res, next) => {
                                 }
                             });
                     })
+            }
+        }).catch(err => {
+            console.log(err), "error";
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        })
+}
+
+exports.set_loginAll = (req,res,next) => {
+    const {name} = req?.body;
+    Set.getSet(name)
+        .then((resp) => {
+            if (resp) {
+                email = resp.email;
+                primary = resp?.primary
+            }
+            else {
+                const error = new Error();
+                error.statusCode = 403;
+                error.data = "No such set";
+                throw error;
+            }
+        }).then(() => {
+            const errors = [];
+            const successUsers = []
+            for (let i = 0; i <= email.length - 1; i++) {
+                User.findByEmailId(email[i])
+                .then((result) => {
+                    FS_Pass = result?.FS_Pass
+                    FS_TOTPKEY = result?.FS_TOTPKEY
+                    UID = result?.FS_uid
+                    apiKey = result?.FS_api_key
+                    vendorCode = result?.FS_id
+                }).then(() => {
+                    let otp = totpGen.generate(FS_TOTPKEY)
+                    console.log(otp,FS_Pass,apiKey,"otp")
+                    firstock.login(
+                        {
+                          userId: UID,
+                          password: FS_Pass,
+                          TOTP: otp?.otp,
+                          vendorCode: vendorCode,
+                          apiKey: apiKey,
+                        },
+                        (err, result) => {
+                          console.log("Error, ", err?.detail);
+                          console.log("Result: ", result);
+                          if (result && result !== null) {
+                            User.findByIdAndUpdateFSToken(result?.data?.email, result?.data?.susertoken)
+                              .then((rspp) => {
+                                console.log(rspp,email[i],"rspp")
+                                if(rspp?.acknowledged){
+                                    successUsers.push(email[i]);
+                                } 
+                            }).then(() =>{
+                                if (i == email.length - 1) {
+                                    console.log(successUsers,"succ")
+                                       res.status(200).json({
+                                            message: `${successUsers?.length} users logged in`,
+                                        });
+                                  }
+                            });
+                          }  
+                        }
+                      )
+
+                })
             }
         }).catch(err => {
             console.log(err), "error";
