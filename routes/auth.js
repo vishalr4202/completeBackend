@@ -51,6 +51,8 @@ router.post('/setbullCallSpread',IsAdmin,FirstockSet.set_fs_bullCallSpread)
 router.post('/setbearPutSpread',IsAdmin,FirstockSet.set_fs_bearPutSpread)
 router.post('/setloginAll',IsAdmin,FirstockSet.set_loginAll)
 
+router.post('/placeTrailingSetOrders',IsAdmin,FirstockSet.placeTrailingSetOrders)
+
 // userFirstock
 router.post("/firstStockLogin",IsAuth,FirstStockController.firstLogin)
 router.get('/fsuserDetails',IsAuth,FirstStockController.fs_user_details)

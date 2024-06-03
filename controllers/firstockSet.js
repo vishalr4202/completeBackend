@@ -54,10 +54,195 @@ exports.deleteSet = (req, res, next) => {
     })
 }
 
+
+
+exports.placeTrailingSetOrders = (req, res, next) => {
+    const { name, tradingsymbol, quantity, transactionType,trailPrice } = req.body;
+    let email;
+    let primary
+    const usersValid = [];
+
+    function placeTrades(transactionType, email) {
+        // const errors = [];
+        // const successUsers = []
+        for (let i = 0; i <= email.length - 1; i++) {
+            console.log(email[0], "now")
+            User.findByEmailId(email[i])
+                .then((result) => {
+                    access_token = result?.FS_access_token,
+                        UID = result?.FS_uid
+                    // console.log(result, "result")
+                    return result
+                }).then((resp) => {
+                    firstock.placeOrder(
+                        {
+                            userId: UID,
+                            jKey: access_token
+                        },
+                        {
+                            exchange: "NFO",
+                            tradingSymbol: tradingsymbol,
+                            quantity: quantity,
+                            price: '0',
+                            product: "M",
+                            transactionType: transactionType ? transactionType : 'B',
+                            priceType: "MKT",
+                            retention: "IOC",
+                            triggerPrice: "0",
+                            remarks: "place order",
+                        },
+                        (err, result) => {
+                            console.log('result', result)
+                            console.log('err', err)
+                            if (result?.status == 'Success' && transactionType == 'S') {
+                                usersValid.push(resp?.email)
+                            }
+                        })
+                })
+        }
+    }
+
+
+    Set.getSet(name)
+        .then((resp) => {
+            if (resp) {
+                email = resp.email;
+                primary = resp?.primary
+            }
+            else {
+                const error = new Error();
+                error.statusCode = 403;
+                error.data = "No such set";
+                throw error;
+            }
+
+        }).then(() => {
+            console.log(email, "mail")
+            placeTrades('B', email)
+        }).then((resp) => {
+            User.findByEmailId(email[0])
+                .then((result) => {
+                    access_token = result?.FS_access_token,
+                        UID = result?.FS_uid
+                    return result
+                }).then((resp) => {
+                    firstock.searchScripts({ stext: tradingsymbol, userId: UID, jKey: access_token, }, (err, result) => {
+                        console.log("Error, ", err);
+                        // console.log("Result: ", result);
+                        if (result) {
+                            token = result?.values[0]?.token
+                            console.log(token)
+                            const ws = firstock.initializeWebSocket(2);
+                            ws.on("open", function open() {
+                                firstock.getWebSocketDetails({ UID: UID, jKey: access_token }, (err, result) => {
+                                    if (!err) {
+                                        firstock.initialSendWebSocketDetails(ws, result, () => {
+                                            //Subscribe Feed
+                                            ws.send(firstock.subscribeFeedAcknowledgement(`NFO|${token}`)); //Sending NIFTY 50 and BANKNIFTY Token
+                                        });
+                                    }
+                                });
+                            });
+                            let lastPrice = 0;
+                            let startPrice = 0;
+                            let stopLoss = 0;
+                            let profit1, profit2, profit3;
+                            let profit1Hit = false;
+                            let profit2Hit = false;
+                            let profit3Hit = false;
+                            ws.on("error", function error(error) {
+                                console.log(`WebSocket error: ${error}`);
+                            });
+                            ws.on("message", function message(data) {
+                                const result = firstock.receiveWebSocketDetails(data);
+                                // console.log("message: ", result);
+                                // lastPrice = Number(result?.lp) 
+                                if (result?.lp) {
+                                    if (startPrice == 0) {
+                                        startPrice = Number(result?.lp)
+                                        lastPrice = Number(result?.lp)
+                                        stopLoss = Number(result?.lp) - trailPrice
+                                        // profit1 = Number(result?.lp) + 40
+                                        // profit2 = Number(result?.lp) + 60
+                                        // profit3 = Number(result?.lp) + 80
+                                        console.log(startPrice, "startPrice")
+                                        console.log(lastPrice, "last")
+                                    }
+
+                                    // if ( Number(result?.lp) > lastPrice && Number(result?.lp) < profit1) {
+                                    //     lastPrice =  Number(result?.lp)
+                                    //     stopLoss = result?.lp - 50
+                                    // } 
+
+                                    if (Number(result?.lp) > lastPrice) {
+                                        lastPrice = Number(result?.lp)
+                                        stopLoss = result?.lp - trailPrice
+                                    }
+                                    console.log(Number(result?.lp))
+                                    console.log(lastPrice, "last")
+                                    console.log(stopLoss, "stop")
+
+                                    // if (Number(result?.lp) >= profit1 && Number(result?.lp) >= lastPrice && !profit2Hit && !profit3Hit) {
+                                    //     lastPrice = Number(result?.lp)
+                                    //     stopLoss = Number(lastPrice) - 15
+                                    //     profit1Hit = true;
+                                    //     console.log(result?.lp, "in profit 1")
+                                    // }
+                                    // if (Number(result?.lp) >= profit2 && Number(result?.lp) >= lastPrice && !profit3Hit) {
+                                    //     lastPrice = Number(result?.lp)
+                                    //     stopLoss = Number(lastPrice) - 20
+                                    //     profit2Hit = true;
+                                    //     console.log(result?.lp, "in profit 2")
+                                    // }
+                                    // if (Number(result?.lp) >= profit3 && Number(result?.lp) >= lastPrice) {
+                                    //     lastPrice = Number(result?.lp)
+                                    //     stopLoss = Number(lastPrice) - 10
+                                    //     profit3Hit = true;
+                                    //     console.log(result?.lp, "in profit 3")
+                                    // }
+                                    if (Number(result?.lp) <= stopLoss) {
+                                        console.log("----------------------------exited Trades---------------");
+                                        ws.send(firstock.unsubscribeFeed(`NFO|${token}`));
+                                        placeTrades('S', email)
+                                        res.status(200).json({
+                                            message: `orders placed: exit:${result?.lp}, entry:${startPrice}`,
+                                        });
+                                    }
+                                }
+                            });
+                        }
+                    });
+                })
+        })
+        .catch((err) => {
+            console.log(err, "errwdwd")
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        })
+
+}
+
 exports.placeSetOrders = (req, res, next) => {
     const { name, tradingsymbol, quantity, transactionType } = req.body;
     let email;
     let primary
+    console.log('in')
+    function newFunc(){
+        var result = [];
+        function helperFunc(quant){
+            if(quant <= 0) return;
+            if(quant > 0){
+                console.log('placeOrder')
+                result.push('placed')
+            }
+            helperFunc(quant-1800);
+        }
+        helperFunc(quantity);
+        return result;
+    }
+
     Set.getSet(name)
         .then((resp) => {
             if (resp) {
@@ -74,6 +259,9 @@ exports.placeSetOrders = (req, res, next) => {
         }).then(() => {
             const errors = [];
             const successUsers = []
+            if(quantity > 1800){
+                newFunc();
+            }
             for (let i = 0; i <= email.length - 1; i++) {
                 console.log(email[0], "now")
                 User.findByEmailId(email[i])
@@ -134,6 +322,18 @@ exports.placeSetOrders = (req, res, next) => {
             }
             next(err);
         })
+
+    // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/TriggerInstantOrder', {
+    //     headers:
+    //     {
+    //         "Content-Type": "application/json",
+    //     },
+    //     method: 'POST',
+    //     body: JSON.stringify({ ...req.body, transactionType: 'B' })
+    // })
+    //     .then(res => res.json())
+    //     .then(json => console.log(json, "chicghu"))
+    //     .catch(err => console.log(err, "err"))
 }
 
 exports.exitSetOrders = (req, res, next) => {
@@ -217,6 +417,18 @@ exports.exitSetOrders = (req, res, next) => {
             }
             next(err);
         })
+
+    // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/TriggerInstantOrder', {
+    //     headers:
+    //     {
+    //         "Content-Type": "application/json",
+    //     },
+    //     method: 'POST',
+    //     body: JSON.stringify({ ...req.body, transactionType: 'S' })
+    // })
+    //     .then(res => res.json())
+    //     .then(json => console.log(json, "chicghu"))
+    //     .catch(err => console.log(err, "err"))
 }
 
 exports.getFSUsers = (req, res, next) => {
@@ -814,8 +1026,8 @@ exports.set_fs_bearPutSpread = (req, res, next) => {
         })
 }
 
-exports.set_loginAll = (req,res,next) => {
-    const {name} = req?.body;
+exports.set_loginAll = (req, res, next) => {
+    const { name } = req?.body;
     Set.getSet(name)
         .then((resp) => {
             if (resp) {
@@ -833,46 +1045,46 @@ exports.set_loginAll = (req,res,next) => {
             const successUsers = []
             for (let i = 0; i <= email.length - 1; i++) {
                 User.findByEmailId(email[i])
-                .then((result) => {
-                    FS_Pass = result?.FS_Pass
-                    FS_TOTPKEY = result?.FS_TOTPKEY
-                    UID = result?.FS_uid
-                    apiKey = result?.FS_api_key
-                    vendorCode = result?.FS_id
-                }).then(() => {
-                    let otp = totpGen.generate(FS_TOTPKEY)
-                    console.log(otp,FS_Pass,apiKey,"otp")
-                    firstock.login(
-                        {
-                          userId: UID,
-                          password: FS_Pass,
-                          TOTP: otp?.otp,
-                          vendorCode: vendorCode,
-                          apiKey: apiKey,
-                        },
-                        (err, result) => {
-                          console.log("Error, ", err?.detail);
-                          console.log("Result: ", result);
-                          if (result && result !== null) {
-                            User.findByIdAndUpdateFSToken(result?.data?.email, result?.data?.susertoken)
-                              .then((rspp) => {
-                                console.log(rspp,email[i],"rspp")
-                                if(rspp?.acknowledged){
-                                    successUsers.push(email[i]);
-                                } 
-                            }).then(() =>{
-                                if (i == email.length - 1) {
-                                    console.log(successUsers,"succ")
-                                       res.status(200).json({
-                                            message: `${successUsers?.length} users logged in`,
+                    .then((result) => {
+                        FS_Pass = result?.FS_Pass
+                        FS_TOTPKEY = result?.FS_TOTPKEY
+                        UID = result?.FS_uid
+                        apiKey = result?.FS_api_key
+                        vendorCode = result?.FS_id
+                    }).then(() => {
+                        let otp = totpGen.generate(FS_TOTPKEY)
+                        console.log(otp, FS_Pass, apiKey, "otp")
+                        firstock.login(
+                            {
+                                userId: UID,
+                                password: FS_Pass,
+                                TOTP: otp?.otp,
+                                vendorCode: vendorCode,
+                                apiKey: apiKey,
+                            },
+                            (err, result) => {
+                                console.log("Error, ", err?.detail);
+                                console.log("Result: ", result);
+                                if (result && result !== null) {
+                                    User.findByIdAndUpdateFSToken(result?.data?.email, result?.data?.susertoken)
+                                        .then((rspp) => {
+                                            console.log(rspp, email[i], "rspp")
+                                            if (rspp?.acknowledged) {
+                                                successUsers.push(email[i]);
+                                            }
+                                        }).then(() => {
+                                            if (i == email.length - 1) {
+                                                console.log(successUsers, "succ")
+                                                res.status(200).json({
+                                                    message: `${successUsers?.length} users logged in`,
+                                                });
+                                            }
                                         });
-                                  }
-                            });
-                          }  
-                        }
-                      )
+                                }
+                            }
+                        )
 
-                })
+                    })
             }
         }).catch(err => {
             console.log(err), "error";
@@ -881,4 +1093,15 @@ exports.set_loginAll = (req,res,next) => {
             }
             next(err);
         })
+
+    // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/login', {
+    //     headers:
+    //     {
+    //         "Content-Type": "application/json",
+    //     },
+    //     method: 'GET',
+    // })
+    //     .then(res => res.json())
+    //     .then(json => console.log(json, "sds"))
+    //     .catch(err => console.log(err, "err"))
 }
