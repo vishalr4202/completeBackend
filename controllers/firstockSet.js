@@ -120,7 +120,7 @@ exports.placeTrailingSetOrders = (req, res, next) => {
             console.log(email, "mail")
             placeTrades('B', email)
         }).then((resp) => {
-            User.findByEmailId(email[0])
+            User.findByEmailId(primary)
                 .then((result) => {
                     access_token = result?.FS_access_token,
                         UID = result?.FS_uid
@@ -178,8 +178,8 @@ exports.placeTrailingSetOrders = (req, res, next) => {
                                         lastPrice = Number(result?.lp)
                                         stopLoss = result?.lp - trailPrice
                                     }
-                                    console.log(Number(result?.lp))
-                                    console.log(lastPrice, "last")
+                                    console.log(Number(result?.lp),"current")
+                                    console.log(lastPrice, "high")
                                     console.log(stopLoss, "stop")
 
                                     // if (Number(result?.lp) >= profit1 && Number(result?.lp) >= lastPrice && !profit2Hit && !profit3Hit) {
@@ -883,6 +883,7 @@ exports.set_fs_longStrangle = (req, res, next) => {
 
 exports.set_fs_bullCallSpread = (req, res, next) => {
     const { symbol, callBuyStrikePrice, callSellStrikePrice, expiry, quantity, name } = req.body
+    console.log(symbol)
     Set.getSet(name)
         .then((resp) => {
             if (resp) {
@@ -1066,7 +1067,7 @@ exports.set_loginAll = (req, res, next) => {
                                 console.log("Error, ", err?.detail);
                                 console.log("Result: ", result);
                                 if (result && result !== null) {
-                                    User.findByIdAndUpdateFSToken(result?.data?.email, result?.data?.susertoken)
+                                    User.findByIdAndUpdateFSToken(result?.data?.email.toLowerCase(), result?.data?.susertoken)
                                         .then((rspp) => {
                                             console.log(rspp, email[i], "rspp")
                                             if (rspp?.acknowledged) {
