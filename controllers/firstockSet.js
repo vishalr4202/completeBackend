@@ -2,6 +2,7 @@ const User = require("../model/user");
 const Set = require('../model/sets')
 const Firstock = require("thefirstock");
 const { validationResult } = require("express-validator");
+const { Double } = require("mongodb");
 const totpGen = require("totp-generator").TOTP
 const firstock = new Firstock();
 
@@ -57,7 +58,7 @@ exports.deleteSet = (req, res, next) => {
 
 
 exports.placeTrailingSetOrders = (req, res, next) => {
-    const { name, tradingsymbol, quantity, transactionType,trailPrice } = req.body;
+    const { name, tradingsymbol, quantity, transactionType, trailPrice } = req.body;
     let email;
     let primary
     const usersValid = [];
@@ -178,7 +179,7 @@ exports.placeTrailingSetOrders = (req, res, next) => {
                                         lastPrice = Number(result?.lp)
                                         stopLoss = result?.lp - trailPrice
                                     }
-                                    console.log(Number(result?.lp),"current")
+                                    console.log(Number(result?.lp), "current")
                                     console.log(lastPrice, "high")
                                     console.log(stopLoss, "stop")
 
@@ -229,15 +230,15 @@ exports.placeSetOrders = (req, res, next) => {
     let email;
     let primary
     console.log('in')
-    function newFunc(){
+    function newFunc() {
         var result = [];
-        function helperFunc(quant){
-            if(quant <= 0) return;
-            if(quant > 0){
+        function helperFunc(quant) {
+            if (quant <= 0) return;
+            if (quant > 0) {
                 console.log('placeOrder')
                 result.push('placed')
             }
-            helperFunc(quant-1800);
+            helperFunc(quant - 1800);
         }
         helperFunc(quantity);
         return result;
@@ -259,7 +260,7 @@ exports.placeSetOrders = (req, res, next) => {
         }).then(() => {
             const errors = [];
             const successUsers = []
-            if(quantity > 1800){
+            if (quantity > 1800) {
                 newFunc();
             }
             for (let i = 0; i <= email.length - 1; i++) {
@@ -335,6 +336,161 @@ exports.placeSetOrders = (req, res, next) => {
     //     .then(json => console.log(json, "chicghu"))
     //     .catch(err => console.log(err, "err"))
 }
+
+exports.placeSetLimitOrders = (req, res, next) => {
+    const { name, tradingsymbol, quantity, transactionType,limitprice } = req.body;
+    let email;
+    let primary
+    console.log('in')
+    function newFunc() {
+        var result = [];
+        function helperFunc(quant) {
+            if (quant <= 0) return;
+            if (quant > 0) {
+                console.log('placeOrder')
+                result.push('placed')
+            }
+            helperFunc(quant - 1800);
+        }
+        helperFunc(quantity);
+        return result;
+    }
+
+    Set.getSet(name)
+        .then((resp) => {
+            if (resp) {
+                email = resp.email;
+                primary = resp?.primary
+            }
+            else {
+                const error = new Error();
+                error.statusCode = 403;
+                error.data = "No such set";
+                throw error;
+            }
+
+        }).then(() => {
+            const errors = [];
+            const successUsers = []
+            if (quantity > 1800) {
+                newFunc();
+            }
+            for (let i = 0; i <= email.length - 1; i++) {
+                console.log(email[0], "now")
+                User.findByEmailId(email[i])
+                    .then((result) => {
+                        access_token = result?.FS_access_token,
+                            UID = result?.FS_uid
+                        console.log(result, "result user")
+                    }).then((resp) => {
+                        firstock.placeOrder(
+                            {
+                                userId: UID,
+                                jKey: access_token
+                            },
+                            {
+                                exchange: "NFO",
+                                tradingSymbol: tradingsymbol,
+                                quantity: quantity,
+                                price: '0',
+                                product: "M",
+                                transactionType: transactionType ? transactionType : 'B',
+                                priceType: "MKT",
+                                retention: "IOC",
+                                triggerPrice: "0",
+                                remarks: "place order",
+                            },
+                            (err, result) => {
+                                console.log('result trade', result);
+                                if(result){
+                                           firstock.singleOrderHistory(
+                                    {
+                                        userId: UID,
+                                        jKey: access_token,
+                                        orderNumber: result?.data?.orderNumber
+                                        // orderNumber: '25062000005190'
+                                    },
+                                    (err, result) => {
+                                        console.log("orderError, ", err);
+                                        console.log("Resultorder", result);
+                                        if(result && result.status == 'Success'){
+                                            console.log(result.data[0].averagePrice ,Number(result?.data[0]?.averagePrice) - Number(limitprice),"price now");
+                                               firstock.placeOrder(
+                                            {
+                                                userId: UID,
+                                                jKey: access_token
+                                            },
+                                            {
+                                                exchange: "NFO",
+                                                tradingSymbol: tradingsymbol,
+                                                quantity: quantity,
+                                                price:result?.data[0]?.transactionType == 'B'? Math.round((Number(result?.data[0]?.averagePrice) + Number(limitprice)) / 0.05)* 0.05 :  Math.round((Number(result?.data[0]?.averagePrice) - Number(limitprice)) / 0.05) * 0.05,
+                                                product: "M",
+                                                transactionType: result?.data[0]?.transactionType == 'B' ? 'S' : 'B',
+                                                priceType: "LMT",
+                                                retention: "DAY",
+                                                triggerPrice: "0",
+                                                remarks: "place limit order again",
+                                            },
+                                            (err, result) => {
+                                                console.log("re-orderError, ", err);
+                                                console.log("ResultRe-order", result);
+                                            }
+                                        )
+                                        }
+                                    }
+                                );
+                                }
+                         
+
+                                console.log('err', err)
+                                // if (result && result != LMTnull) {
+                                if (result) {
+                                    successUsers.push(email[i])
+                                }
+                                if (err) {
+                                    errors.push(email[i])
+                                }
+                                if (i == email.length - 1) {
+                                    if (email.length == errors.length) {
+                                        console.log(errors?.length, email?.length, "only errors")
+                                        res.status(200).json({
+                                            message: { failed: `failed for ${errors}` },
+                                        });
+                                    }
+                                    else {
+                                        console.log(errors, "errs","all orders placed")
+                                        res.status(200).json({
+                                            message: { success: `orders placed for ${successUsers}` },
+                                        });
+                                    }
+                                }
+
+                            })
+                    })
+            }
+        })
+        .catch((err) => {
+            console.log(err, "errwdwd")
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        })
+
+    // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/TriggerInstantOrder', {
+    //     headers:
+    //     {
+    //         "Content-Type": "application/json",
+    //     },
+    //     method: 'POST',
+    //     body: JSON.stringify({ ...req.body, transactionType: 'B' })
+    // })
+    //     .then(res => res.json())
+    //     .then(json => console.log(json, "chicghu"))
+    //     .catch(err => console.log(err, "err"))
+}
+
 
 exports.exitSetOrders = (req, res, next) => {
     const { name, tradingsymbol, quantity, transactionType } = req.body;
@@ -1105,4 +1261,88 @@ exports.set_loginAll = (req, res, next) => {
     //     .then(res => res.json())
     //     .then(json => console.log(json, "sds"))
     //     .catch(err => console.log(err, "err"))
+}
+
+
+exports.set_option_chain = (req, res, next) => {
+
+    const { name } = req?.body;
+    const symbol = req?.body?.symbol;
+    const count = req?.body?.count;
+    const strike = req?.body?.strike
+    Set.getSet(name)
+        .then((resp) => {
+            if (resp) {
+                email = resp.email;
+                primary = resp?.primary
+                console.log(resp, "ASD")
+            }
+            else {
+                const error = new Error();
+                error.statusCode = 403;
+                error.data = "No such set";
+                throw error;
+            }
+        }).then(() => {
+            // for (let i = 0; i <= email.length - 1; i++) {
+            User.findByEmailId(primary).then((result) => {
+                access_token = result.FS_access_token,
+                    UID = result.FS_uid
+                console.log(result, "result")
+            }).then(() => {
+                firstock.getOptionChain(
+                    {
+                        userId: UID,
+                        jKey: access_token
+                    },
+                    // {
+                    //     tradingSymbol: "NIFTY05JUN25C24000",
+                    //     exchange: "NFO",
+                    //     strikePrice: "24000",
+                    //     count: "5",
+                    // },
+                    {
+                        tradingSymbol: symbol,
+                        exchange: "NFO",
+                        strikePrice: strike,
+                        count: count,
+                    },
+                    (err, result) => {
+                        console.log("Error, ", err);
+                        console.log("Result: ", result);
+                        if (result && result?.status == 'Success') {
+                            // res.send(result.data.sort((a, b) => parseFloat(a.strikePrice) - parseFloat(b.strikePrice)))
+                            // let data = [...result.data].sort((a, b) => parseFloat(a.strikePrice) - parseFloat(b.strikePrice))
+                            let ceOptions = result.data.filter(item => item.optionType === 'CE');
+                            let peOptions = result.data.filter(item => item.optionType === 'PE');
+
+                            // Sort both CE and PE options by strikePrice
+                            let sortedCE = ceOptions.sort((a, b) => parseFloat(a.strikePrice) - parseFloat(b.strikePrice));
+                            let sortedPE = peOptions.sort((a, b) => parseFloat(a.strikePrice) - parseFloat(b.strikePrice));
+
+                            // res.status(200).json({data:result.data})
+                            res.status(200).json({
+                                data: {
+                                    ceOptions: sortedCE,
+                                    peOptions: sortedPE
+                                }
+                            })
+
+                        }
+                        else {
+                            console.log(err, "sdas")
+                            next(err)
+                        }
+                    }
+                )
+            })
+            // }
+        }
+        ).catch(err => {
+            console.log(err), "error";
+            if (!err.statusCode) {
+                err.statusCode = 500;
+            }
+            next(err);
+        })
 }

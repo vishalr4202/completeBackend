@@ -37,6 +37,7 @@ router.post("/getPositions", IsAdmin, UserActionController.getPositions);
 router.post('/createSet',IsAdmin, UserSchema.setSignupSchema,FirstockSet.createSet)
 router.post('/deleteSet',IsAdmin,FirstockSet.deleteSet)
 router.post('/placeSetOrders',IsAdmin,FirstockSet.placeSetOrders)
+router.post('/placeSetLimitOrders',IsAdmin,FirstockSet.placeSetLimitOrders)
 router.post('/exitSetOrders',IsAdmin,FirstockSet.exitSetOrders)
 router.get('/getFSUsers',IsAdmin,FirstockSet.getFSUsers)
 router.get('/getAllSets',IsAdmin,FirstockSet.getAllSets)
@@ -50,8 +51,9 @@ router.post('/setlongStrangle',IsAdmin,FirstockSet.set_fs_longStrangle)
 router.post('/setbullCallSpread',IsAdmin,FirstockSet.set_fs_bullCallSpread)
 router.post('/setbearPutSpread',IsAdmin,FirstockSet.set_fs_bearPutSpread)
 router.post('/setloginAll',IsAdmin,FirstockSet.set_loginAll)
-
+router.post('/setOptionChain',IsAdmin,FirstockSet.set_option_chain)
 router.post('/placeTrailingSetOrders',IsAdmin,FirstockSet.placeTrailingSetOrders)
+router.get('/optionChain',IsAuth,FirstStockController.fs_get_option_chain)
 
 // userFirstock
 router.post("/firstStockLogin",IsAuth,FirstStockController.firstLogin)

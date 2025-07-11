@@ -742,14 +742,61 @@ class Firstock extends AFirstock {
             callBack(handleError(error), null);
           });
   }
-  getOptionChain({ exchange, tradingSymbol, strikePrice, count }, callBack) {
-    Commonfunctions.readData((err, data) => {
-      if (err) {
-        callBack(err, null);
-      } else {
-        const userId = data.userId || this.userId;
-        const jKey = data.token || this.token;
-        axiosInterceptor
+  // getOptionChain({ exchange, tradingSymbol, strikePrice, count }, callBack) {
+  //   Commonfunctions.readData((err, data) => {
+  //     if (err) {
+  //       callBack(err, null);
+  //     } else {
+  //       const userId = data.userId || this.userId;
+  //       const jKey = data.token || this.token;
+  //       axiosInterceptor
+  //         .post(`optionChain`, {
+  //           userId,
+  //           jKey,
+  //           exchange,
+  //           tradingSymbol,
+  //           strikePrice,
+  //           count,
+  //         })
+  //         .then((response) => {
+  //           const { data } = response;
+
+  //           callBack(null, data);
+  //         })
+  //         .catch((error) => {
+  //           callBack(handleError(error), null);
+  //         });
+  //     }
+  //   });
+  // }
+
+    getOptionChain({userId,jKey},{ exchange, tradingSymbol, strikePrice, count }, callBack) {
+    // Commonfunctions.readData((err, data) => {
+    //   if (err) {
+    //     callBack(err, null);
+    //   } else {
+    //     const userId = data.userId || this.userId;
+    //     const jKey = data.token || this.token;
+    //     axiosInterceptor
+    //       .post(`optionChain`, {
+    //         userId,
+    //         jKey,
+    //         exchange,
+    //         tradingSymbol,
+    //         strikePrice,
+    //         count,
+    //       })
+    //       .then((response) => {
+    //         const { data } = response;
+
+    //         callBack(null, data);
+    //       })
+    //       .catch((error) => {
+    //         callBack(handleError(error), null);
+    //       });
+    //   }
+    // });
+     axiosInterceptor
           .post(`optionChain`, {
             userId,
             jKey,
@@ -766,8 +813,6 @@ class Firstock extends AFirstock {
           .catch((error) => {
             callBack(handleError(error), null);
           });
-      }
-    });
   }
   spanCalculator(listData, callBack) {
     Commonfunctions.readData((err, data) => {

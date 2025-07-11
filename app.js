@@ -17,7 +17,7 @@ const fs = require('fs');
 
 
 var corsOptions = {
-  origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://zerodhalogin.netlify.app","http://botfather.co.in","https://botfather.co.in","http://localhost:5173","https://d292u4d54fm2cc.cloudfront.net"],
+  origin: ['http://newbotfather.s3-website.ap-south-1.amazonaws.com',"https://zerodhalogin.netlify.app","http://botfather.co.in","https://botfather.co.in","http://localhost:5173","https://d292u4d54fm2cc.cloudfront.net","http://localhost:5174"],
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 

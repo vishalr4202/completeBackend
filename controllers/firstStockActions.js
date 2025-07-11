@@ -837,9 +837,9 @@ exports.FS_getLTP = (req, res, next) => {
           //   }
           // );
 
-          const ws = firstock.initializeWebSocket(2); 
+          const ws = firstock.initializeWebSocket(2);
           ws.on("open", function open() {
-            firstock.getWebSocketDetails({UID:UID,jKey:access_token},(err, result) => {
+            firstock.getWebSocketDetails({ UID: UID, jKey: access_token }, (err, result) => {
               if (!err) {
                 firstock.initialSendWebSocketDetails(ws, result, () => {
                   //Subscribe Feed
@@ -848,11 +848,11 @@ exports.FS_getLTP = (req, res, next) => {
               }
             });
           });
-          
+
           ws.on("error", function error(error) {
             console.log(`WebSocket error: ${error}`);
           });
-          
+
           ws.on("message", function message(data) {
             const result = firstock.receiveWebSocketDetails(data);
             console.log("message: ", result?.lp);
@@ -867,11 +867,11 @@ exports.FS_getLTP = (req, res, next) => {
           //     }
           //   });
           // });
-          
+
           // ws.on("error", function error(error) {
           //   console.log(`WebSocket error: ${error}`);
           // });
-          
+
           // ws.on("message", function message(data) {
           //   const result = firstock.receiveWebSocketDetails(data);
           //   console.log("message: ", result);
@@ -885,17 +885,17 @@ exports.FS_getUserTokenData = (req, res, next) => {
   const email = req.email;
   User.findByEmailId(email)
     .then((result) => {
-        access_token = result.FS_access_token,
+      access_token = result.FS_access_token,
         UID = result.FS_uid,
         id = result.FS_id
       console.log(result, "result")
     }).then(() => {
-      console.log(access_token,UID,id,"userDATA")
+      console.log(access_token, UID, id, "userDATA")
       res.status(200).json({
         message: {
-          uid:UID,
-          actid:id,
-          susertoken:access_token
+          uid: UID,
+          actid: id,
+          susertoken: access_token
         },
       });
     }).catch(err => {
@@ -907,7 +907,7 @@ exports.FS_getUserTokenData = (req, res, next) => {
     })
 }
 
-exports.OrderUpdate = (req,res,next) =>{
+exports.OrderUpdate = (req, res, next) => {
   const email = req.email;
   let token = "";
   User.findByEmailId(email)
@@ -916,36 +916,36 @@ exports.OrderUpdate = (req,res,next) =>{
         UID = result.FS_uid
       ID = result.FS_id
       // console.log(result, "result")
-    }).then((res) =>{
+    }).then((res) => {
 
-const ws = firstock.initializeWebSocket(2);
-ws.on("open", function open() {
-  firstock.getWebSocketDetails({UID:UID,jKey:access_token},(err, result) => {
-    if (!err) {
-      firstock.initialSendWebSocketDetails(ws, result, () => {
-        // ws.send(firstock.subscribeOrderUpdate(ID));
-        ws.send(firstock.subscribeOrderUpdate(UID))
-      }); 
-    }
-  });
-});
+      const ws = firstock.initializeWebSocket(2);
+      ws.on("open", function open() {
+        firstock.getWebSocketDetails({ UID: UID, jKey: access_token }, (err, result) => {
+          if (!err) {
+            firstock.initialSendWebSocketDetails(ws, result, () => {
+              // ws.send(firstock.subscribeOrderUpdate(ID));
+              ws.send(firstock.subscribeOrderUpdate(UID))
+            });
+          }
+        });
+      });
 
-ws.on("error", function error(error) {
-  console.log(`WebSocket error: ${error}`);
-});
+      ws.on("error", function error(error) {
+        console.log(`WebSocket error: ${error}`);
+      });
 
-ws.on("message", function message(data) {
-  const result = firstock.receiveWebSocketDetails(data);
-  console.log("message: ", result);
-});
+      ws.on("message", function message(data) {
+        const result = firstock.receiveWebSocketDetails(data);
+        console.log("message: ", result);
+      });
     })
 }
 
 exports.fs_place_single_order = (req, res, next) => {
   console.log(req.body, "Sssasd")
   const email = req.email;
-  const { tradingsymbol, transaction_type, entry_type, order, limit, quantity,quickTrade,priceType } = req.body
-  console.log(order,quickTrade,"sdhfbjs")
+  const { tradingsymbol, transaction_type, entry_type, order, limit, quantity, quickTrade, priceType } = req.body
+  console.log(order, quickTrade, "sdhfbjs")
   User.findByEmailId(email)
     .then((result) => {
       access_token = result.FS_access_token,
@@ -967,7 +967,7 @@ exports.fs_place_single_order = (req, res, next) => {
         {
           exchange: "NFO",
           tradingSymbol: tradingsymbol,
-          quantity: quickTrade ? quantity :quantity * quantMultiple,
+          quantity: quickTrade ? quantity : quantity * quantMultiple,
           price: limit ? limit : '0',
           product: "M",
           transactionType: transaction_type,
@@ -1015,6 +1015,56 @@ exports.fs_place_single_order = (req, res, next) => {
         }
       );
     }).catch(err => {
+      console.log(err), "error";
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    })
+}
+
+
+exports.fs_get_option_chain = (req, res, next) => {
+  const email = req?.email;
+  const symbol = req?.body?.symbol;
+  const count = req?.body?.count;
+  const strike = req?.body?.strike
+  User.findByEmailId(email).then((result) => {
+    access_token = result.FS_access_token,
+      UID = result.FS_uid
+    console.log(result, "result")
+  }).then(() => {
+    firstock.getOptionChain(
+      {
+        userId: UID,
+        jKey: access_token
+      },
+      // {
+      //   tradingSymbol: "NIFTY05JUN25C24000",
+      //   exchange: "NFO",
+      //   strikePrice: "24000",
+      //   count: "3",
+      // },
+       {
+        tradingSymbol: symbol,
+        exchange: "NFO",
+        strikePrice: strike ,
+        count: count,
+      },
+      (err, result) => {
+        console.log("Error, ", err);
+        console.log("Result: ", result);
+        if (result && result?.status == 'Success') {
+          res.send(result.data.sort((a, b) => parseFloat(a.strikePrice) - parseFloat(b.strikePrice)))
+        }
+        else {
+          console.log(err, "sdas")
+          next(err)
+        }
+      }
+    )
+  })
+  .catch(err => {
       console.log(err), "error";
       if (!err.statusCode) {
         err.statusCode = 500;
