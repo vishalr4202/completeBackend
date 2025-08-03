@@ -337,159 +337,280 @@ exports.placeSetOrders = (req, res, next) => {
     //     .catch(err => console.log(err, "err"))
 }
 
-exports.placeSetLimitOrders = (req, res, next) => {
-    const { name, tradingsymbol, quantity, transactionType,limitprice } = req.body;
-    let email;
-    let primary
-    console.log('in')
-    function newFunc() {
-        var result = [];
-        function helperFunc(quant) {
-            if (quant <= 0) return;
-            if (quant > 0) {
-                console.log('placeOrder')
-                result.push('placed')
-            }
-            helperFunc(quant - 1800);
-        }
-        helperFunc(quantity);
-        return result;
-    }
+// exports.placeSetLimitOrders = (req, res, next) => {
+//     const { name, tradingsymbol, quantity, transactionType,limitprice } = req.body;
+//     let email;
+//     let primary
+//     console.log('in')
+//     function newFunc() {
+//         var result = [];
+//         function helperFunc(quant) {
+//             if (quant <= 0) return;
+//             if (quant > 0) {
+//                 console.log('placeOrder')
+//                 result.push('placed')
+//             }
+//             helperFunc(quant - 1800);
+//         }
+//         helperFunc(quantity);
+//         return result;
+//     }
 
-    Set.getSet(name)
-        .then((resp) => {
-            if (resp) {
-                email = resp.email;
-                primary = resp?.primary
-            }
-            else {
-                const error = new Error();
-                error.statusCode = 403;
-                error.data = "No such set";
-                throw error;
-            }
+//     Set.getSet(name)
+//         .then((resp) => {
+//             if (resp) {
+//                 email = resp.email;
+//                 primary = resp?.primary
+//             }
+//             else {
+//                 const error = new Error();
+//                 error.statusCode = 403;
+//                 error.data = "No such set";
+//                 throw error;
+//             }
 
-        }).then(() => {
-            const errors = [];
-            const successUsers = []
-            if (quantity > 1800) {
-                newFunc();
-            }
-            for (let i = 0; i <= email.length - 1; i++) {
-                console.log(email[0], "now")
-                User.findByEmailId(email[i])
-                    .then((result) => {
-                        access_token = result?.FS_access_token,
-                            UID = result?.FS_uid
-                        console.log(result, "result user")
-                    }).then((resp) => {
-                        firstock.placeOrder(
-                            {
-                                userId: UID,
-                                jKey: access_token
-                            },
-                            {
-                                exchange: "NFO",
-                                tradingSymbol: tradingsymbol,
-                                quantity: quantity,
-                                price: '0',
-                                product: "M",
-                                transactionType: transactionType ? transactionType : 'B',
-                                priceType: "MKT",
-                                retention: "IOC",
-                                triggerPrice: "0",
-                                remarks: "place order",
-                            },
-                            (err, result) => {
-                                console.log('result trade', result);
-                                if(result){
-                                           firstock.singleOrderHistory(
-                                    {
-                                        userId: UID,
-                                        jKey: access_token,
-                                        orderNumber: result?.data?.orderNumber
-                                        // orderNumber: '25062000005190'
-                                    },
-                                    (err, result) => {
-                                        console.log("orderError, ", err);
-                                        console.log("Resultorder", result);
-                                        if(result && result.status == 'Success'){
-                                            console.log(result.data[0].averagePrice ,Number(result?.data[0]?.averagePrice) - Number(limitprice),"price now");
-                                               firstock.placeOrder(
-                                            {
-                                                userId: UID,
-                                                jKey: access_token
-                                            },
-                                            {
-                                                exchange: "NFO",
-                                                tradingSymbol: tradingsymbol,
-                                                quantity: quantity,
-                                                price:result?.data[0]?.transactionType == 'B'? Math.round((Number(result?.data[0]?.averagePrice) + Number(limitprice)) / 0.05)* 0.05 :  Math.round((Number(result?.data[0]?.averagePrice) - Number(limitprice)) / 0.05) * 0.05,
-                                                product: "M",
-                                                transactionType: result?.data[0]?.transactionType == 'B' ? 'S' : 'B',
-                                                priceType: "LMT",
-                                                retention: "DAY",
-                                                triggerPrice: "0",
-                                                remarks: "place limit order again",
-                                            },
-                                            (err, result) => {
-                                                console.log("re-orderError, ", err);
-                                                console.log("ResultRe-order", result);
-                                            }
-                                        )
-                                        }
-                                    }
-                                );
-                                }
+//         }).then(() => {
+//             const errors = [];
+//             const successUsers = []
+//             if (quantity > 1800) {
+//                 newFunc();
+//             }
+//             for (let i = 0; i <= email.length - 1; i++) {
+//                 console.log(email[0], "now")
+//                 User.findByEmailId(email[i])
+//                     .then((result) => {
+//                         access_token = result?.FS_access_token,
+//                             UID = result?.FS_uid
+//                         console.log(result, "result user")
+//                     }).then((resp) => {
+//                         firstock.placeOrder(
+//                             {
+//                                 userId: UID,
+//                                 jKey: access_token
+//                             },
+//                             {
+//                                 exchange: "NFO",
+//                                 tradingSymbol: tradingsymbol,
+//                                 quantity: quantity,
+//                                 price: '0',
+//                                 product: "M",
+//                                 transactionType: transactionType ? transactionType : 'B',
+//                                 priceType: "MKT",
+//                                 retention: "IOC",
+//                                 triggerPrice: "0",
+//                                 remarks: "place order",
+//                             },
+//                             (err, result) => {
+//                                 console.log('result trade', result);
+//                                 if(result){
+//                                            firstock.singleOrderHistory(
+//                                     {
+//                                         userId: UID,
+//                                         jKey: access_token,
+//                                         orderNumber: result?.data?.orderNumber
+//                                         // orderNumber: '25062000005190'
+//                                     },
+//                                     (err, result) => {
+//                                         console.log("orderError, ", err);
+//                                         console.log("Resultorder", result);
+//                                         if(result && result.status == 'Success'){
+//                                             console.log(result.data[0].averagePrice ,Number(result?.data[0]?.averagePrice) - Number(limitprice),"price now");
+//                                                firstock.placeOrder(
+//                                             {
+//                                                 userId: UID,
+//                                                 jKey: access_token
+//                                             },
+//                                             {
+//                                                 exchange: "NFO",
+//                                                 tradingSymbol: tradingsymbol,
+//                                                 quantity: quantity,
+//                                                 price:result?.data[0]?.transactionType == 'B'? Math.round((Number(result?.data[0]?.averagePrice) + Number(limitprice)) / 0.05)* 0.05 :  Math.round((Number(result?.data[0]?.averagePrice) - Number(limitprice)) / 0.05) * 0.05,
+//                                                 product: "M",
+//                                                 transactionType: result?.data[0]?.transactionType == 'B' ? 'S' : 'B',
+//                                                 priceType: "LMT",
+//                                                 retention: "DAY",
+//                                                 triggerPrice: "0",
+//                                                 remarks: "place limit order again",
+//                                             },
+//                                             (err, result) => {
+//                                                 console.log("re-orderError, ", err);
+//                                                 console.log("ResultRe-order", result);
+//                                             }
+//                                         )
+//                                         }
+//                                     }
+//                                 );
+//                                 }
                          
 
-                                console.log('err', err)
-                                // if (result && result != LMTnull) {
-                                if (result) {
-                                    successUsers.push(email[i])
-                                }
-                                if (err) {
-                                    errors.push(email[i])
-                                }
-                                if (i == email.length - 1) {
-                                    if (email.length == errors.length) {
-                                        console.log(errors?.length, email?.length, "only errors")
-                                        res.status(200).json({
-                                            message: { failed: `failed for ${errors}` },
-                                        });
-                                    }
-                                    else {
-                                        console.log(errors, "errs","all orders placed")
-                                        res.status(200).json({
-                                            message: { success: `orders placed for ${successUsers}` },
-                                        });
-                                    }
-                                }
+//                                 console.log('err', err)
+//                                 // if (result && result != LMTnull) {
+//                                 if (result) {
+//                                     successUsers.push(email[i])
+//                                 }
+//                                 if (err) {
+//                                     errors.push(email[i])
+//                                 }
+//                                 if (i == email.length) {
+//                                     if (email.length == errors.length) {
+//                                         console.log(errors?.length, email?.length, "only errors")
+//                                         res.status(200).json({
+//                                             message: { failed: `failed for ${errors}` },
+//                                         });
+//                                     }
+//                                     else {
+//                                         console.log(errors, "errs","all orders placed")
+//                                         res.status(200).json({
+//                                             message: { success: `orders placed for ${successUsers}` },
+//                                         });
+//                                     }
+//                                 }
 
-                            })
-                    })
-            }
-        })
-        .catch((err) => {
-            console.log(err, "errwdwd")
-            if (!err.statusCode) {
-                err.statusCode = 500;
-            }
-            next(err);
-        })
+//                             })
+//                     })
+//             }
+//         })
+//         .catch((err) => {
+//             console.log(err, "errwdwd")
+//             if (!err.statusCode) {
+//                 err.statusCode = 500;
+//             }
+//             next(err);
+//         })
 
-    // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/TriggerInstantOrder', {
-    //     headers:
-    //     {
-    //         "Content-Type": "application/json",
-    //     },
-    //     method: 'POST',
-    //     body: JSON.stringify({ ...req.body, transactionType: 'B' })
-    // })
-    //     .then(res => res.json())
-    //     .then(json => console.log(json, "chicghu"))
-    //     .catch(err => console.log(err, "err"))
-}
+//     // fetch('http://ec2-13-235-40-45.ap-south-1.compute.amazonaws.com:5999/TriggerInstantOrder', {
+//     //     headers:
+//     //     {
+//     //         "Content-Type": "application/json",
+//     //     },
+//     //     method: 'POST',
+//     //     body: JSON.stringify({ ...req.body, transactionType: 'B' })
+//     // })
+//     //     .then(res => res.json())
+//     //     .then(json => console.log(json, "chicghu"))
+//     //     .catch(err => console.log(err, "err"))
+// }
+
+
+
+
+exports.placeSetLimitOrders = async (req, res, next) => {
+    const { name, tradingsymbol, quantity, transactionType, limitprice } = req.body;
+    let email;
+    let primary;
+
+    try {
+        const resp = await Set.getSet(name);
+        if (!resp) {
+            const error = new Error("No such set");
+            error.statusCode = 403;
+            throw error;
+        }
+
+        email = resp.email;
+        primary = resp.primary;
+
+        const errors = [];
+        const successUsers = [];
+
+        // Optionally handle quantity > 1800
+        if (quantity > 1800) {
+            (function splitQuantities(q) {
+                if (q <= 0) return;
+                console.log('placeOrder');
+                splitQuantities(q - 1800);
+            })(quantity);
+        }
+
+        for (const userEmail of email) {
+            try {
+                const user = await User.findByEmailId(userEmail);
+                const access_token = user?.FS_access_token;
+                const UID = user?.FS_uid;
+
+                const marketOrder = await new Promise((resolve, reject) => {
+                    firstock.placeOrder({
+                        userId: UID,
+                        jKey: access_token
+                    }, {
+                        exchange: "NFO",
+                        tradingSymbol: tradingsymbol,
+                        quantity: quantity,
+                        price: '0',
+                        product: "M",
+                        transactionType: transactionType || 'B',
+                        priceType: "MKT",
+                        retention: "IOC",
+                        triggerPrice: "0",
+                        remarks: "place order",
+                    }, (err, result) => {
+                        if (err || !result) return reject(err || new Error("Market order failed"));
+                        return resolve(result);
+                    });
+                });
+
+                const orderHistory = await new Promise((resolve, reject) => {
+                    firstock.singleOrderHistory({
+                        userId: UID,
+                        jKey: access_token,
+                        orderNumber: marketOrder?.data?.orderNumber
+                    }, (err, result) => {
+                        if (err || !result || result.status !== 'Success') return reject(err || new Error("Order history failed"));
+                        return resolve(result);
+                    });
+                });
+
+                const avgPrice = Number(orderHistory?.data[0]?.averagePrice);
+                const orderType = orderHistory?.data[0]?.transactionType;
+                const limitPrice = orderType === 'B'
+                    ? Math.round((avgPrice + Number(limitprice)) / 0.05) * 0.05
+                    : Math.round((avgPrice - Number(limitprice)) / 0.05) * 0.05;
+
+                await new Promise((resolve, reject) => {
+                    firstock.placeOrder({
+                        userId: UID,
+                        jKey: access_token
+                    }, {
+                        exchange: "NFO",
+                        tradingSymbol: tradingsymbol,
+                        quantity: quantity,
+                        price: limitPrice,
+                        product: "M",
+                        transactionType: orderType === 'B' ? 'S' : 'B',
+                        priceType: "LMT",
+                        retention: "DAY",
+                        triggerPrice: "0",
+                        remarks: "place limit order again",
+                    }, (err, result) => {
+                        if (err || !result) return reject(err || new Error("Limit order failed"));
+                        console.log("Limit order placed for", userEmail);
+                        return resolve(result);
+                    });
+                });
+
+                successUsers.push(userEmail);
+            } catch (err) {
+                console.error(`Error for user ${userEmail}:`, err);
+                errors.push(userEmail);
+            }
+        }
+
+        if (errors.length === email.length) {
+            res.status(200).json({
+                message: { failed: `Failed for ${errors.join(", ")}` },
+            });
+        } else {
+            res.status(200).json({
+                message: { success: `Orders placed for ${successUsers.join(", ")}` },
+            });
+        }
+
+    } catch (err) {
+        console.error("Fatal error:", err);
+        err.statusCode = err.statusCode || 500;
+        next(err);
+    }
+};
 
 
 exports.exitSetOrders = (req, res, next) => {
@@ -650,7 +771,7 @@ exports.getPrimaryUserDetails = (req, res, next) => {
 
 exports.getPrimarySetPositions = (req, res, next) => {
     const { email } = req.body;
-    console.log(email, "asdasn")
+    // console.log(email, "asdasn")
     User.findByEmailId(email)
         .then((result) => {
             access_token = result.FS_access_token,
